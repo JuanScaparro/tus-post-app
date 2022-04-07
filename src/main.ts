@@ -4,26 +4,51 @@ import './style.css'
 
 
 let postsData: IPost[] = [];
+let currentPage: number = 1;
+let quantity: number = 5;
+let isLoading: boolean = false;
 
 const appElement: HTMLElement = <HTMLElement>document.getElementById( 'app' );
+const pageLabel: HTMLElement = <HTMLElement>document.getElementById( 'pageLabel' );
+const prevPage: HTMLButtonElement = <HTMLButtonElement>document.getElementById( 'prevPage' );
+const nextPage: HTMLButtonElement = <HTMLButtonElement>document.getElementById( 'nextPage' );
+const spinner: HTMLElement = <HTMLElement>document.getElementById( 'spinner' );
 
 
+
+const loadingSpinner = () => {
+  isLoading = !isLoading;
+  spinner.style.display = isLoading ? 'block' : 'none';
+  appElement.style.display = !isLoading ? 'block' : 'none';
+};
 
 const loadData = async () => {
   const url: string = `${ JPH_URL.base }${ JPH_URL.posts }`;
-
+  loadingSpinner();
   try {
     const resp = await fetch( url );
     const data = await resp.json();
     saveData( data );
-  } catch {
+  } catch( error: any ) {
+    showError();
+  } finally {
+    loadingSpinner();
+  };  
+};
 
-  }
+const showError = () => {
+  window.alert( 'Hubo un error! por Favor volvé a intentarlo.' );
 };
 
 const saveData = ( data: IPost[] ) => {
   postsData = data;
-  postsData.forEach( post => buildPostCard( post ) );
+  buildPaginationLabel();
+};
+
+const buildPaginationLabel = () => {
+  let pages = postsData.slice( currentPage*quantity - quantity, currentPage*quantity );
+  pageLabel.textContent = `${ currentPage.toString() } / ${ Math.ceil( postsData.length / quantity ) }`;
+  pages.forEach( post => buildPostCard( post ) );
 };
 
 const buildPostCard = ( post: IPost ) => {
@@ -34,7 +59,7 @@ const buildPostCard = ( post: IPost ) => {
                                 Id usuario: ${ userId }
                               </div>
                               <div class="card-body">
-                                <h5 class="card-title">${ title }</h5>
+                                <h2 class="card-title">${ title }</h2>
                                 <p class="card-text">${ body }</p>
 
                                 <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">Ver Usuario</button>
@@ -42,7 +67,7 @@ const buildPostCard = ( post: IPost ) => {
                                 <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRightTwo" aria-controls="offcanvasRight">Comentarios</button>
                               </div>
                               <div class="card-footer text-muted">
-                                Likes:  -  Post Id: ${ id }
+                                Post Id: ${ id }
                               </div>
                             </div>
 
@@ -92,7 +117,33 @@ const buildPostCard = ( post: IPost ) => {
   const div = document.createElement( 'div' );
   div.innerHTML = template;
   appElement.appendChild( div );
-}
+};
+
+const prevBtn = () => {
+    if( currentPage > 1 ){
+      currentPage --;
+      resetPage();
+      buildPaginationLabel();
+    }else{
+      window.alert( 'Esta es la primer página' );
+    };
+};
+prevPage.addEventListener( 'click', prevBtn );
+
+const nextBtn = () => {
+  if( currentPage < Math.ceil( postsData.length / quantity ) ) {
+    currentPage ++;
+    resetPage();
+    buildPaginationLabel();
+  }else{
+    window.alert( 'Lo siento! esta es la última página' );
+  };
+};
+nextPage.addEventListener( 'click', nextBtn );
+
+const resetPage = () => {
+  appElement.innerHTML = '';
+};
 
 const init = () => {
   loadData();

@@ -5,6 +5,7 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://i.icomoon.io/public/temp/615fa88384/UntitledProject/style-svg.css">
     <title>Tus Posts App</title>
   </head>
   <body>
@@ -15,11 +16,22 @@
       </div>
     </nav>
 
-    <!-- Dynamic Post Card -->
-    <div class="container m-5" id="app">
+    <!-- Dynamic Post Card & spinner -->
+    <div class="container m-5 mx-auto" id="app">
+      <div class="spinner-border text-info" role="status" id="spinner">
+        <span class="visually-hidden"></span>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="row col-3 mb-5 mx-auto">
+      <button type="button" class="col btn btn-outline-info" id="prevPage"><svg class="icon icon-undo2"><use xlink:href="#icon-undo2"></use></svg></button>
+      <h5 class="col text-center p-2" id="pageLabel"></h5>
+      <button type="button" class="col btn btn-outline-info" id="nextPage"><svg class="icon icon-redo2"><use xlink:href="#icon-redo2"></use></svg></button>
     </div>
 
 
+    <script defer src="https://i.icomoon.io/public/temp/615fa88384/UntitledProject/svgxuse.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
     <script type="module" src="/src/main.ts"></script>
   </body>
