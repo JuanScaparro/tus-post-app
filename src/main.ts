@@ -1,12 +1,13 @@
 import { JPH_URL } from './utils/api';
 import { IPost } from './interfaces/ipost.interface';
+import { IUser } from './interfaces/iUser.interface';
 import './style.css';
+import { IComment } from './interfaces/iComment.interface';
 
 
 let postsData: IPost[] = [];
 let currentPage: number = 1;
 let quantity: number = 5;
-let isLoading: boolean = false;
 
 const appElement: HTMLElement = <HTMLElement>document.getElementById( 'postContent' );
 const sideBarElement: HTMLElement = <HTMLElement>document.getElementById( 'sideBarContent' );
@@ -15,17 +16,20 @@ const prevPage: HTMLButtonElement = <HTMLButtonElement>document.getElementById( 
 const nextPage: HTMLButtonElement = <HTMLButtonElement>document.getElementById( 'nextPage' );
 const spinner: HTMLElement = <HTMLElement>document.getElementById( 'spinner' );
 const spinnerSideBar: HTMLElement = <HTMLElement>document.getElementById( 'spinnerSideBar' );
+const spinnerTitle: HTMLElement = <HTMLElement>document.getElementById( 'spinnerTitle' );
 
 
 
-const loadingSpinner = (spinnerEl: HTMLElement, el: HTMLElement) => {
-  isLoading = !isLoading;
+const loadingSpinner = ( spinnerEl: HTMLElement, isLoading: boolean, message: string = 'Cargando...' ) => {
+
   spinnerEl.style.display = isLoading ? 'block' : 'none';
+  spinnerTitle.innerHTML = message;
 };
+
 
 const loadData = async () => {
   const url: string = `${ JPH_URL.base }${ JPH_URL.posts }`;
-  loadingSpinner( spinner, appElement );
+  loadingSpinner( spinner, true );
   try {
     const resp = await fetch( url );
     const data = await resp.json();
@@ -33,37 +37,54 @@ const loadData = async () => {
   } catch( error: any ) {
     showError();
   } finally {
-    loadingSpinner(spinner, appElement);
+    loadingSpinner( spinner, false );
   };  
 };
 
-const loadMoreInfo = ( userId: string, postId: string ) => {
-  sideBarElement.innerHTML = '';
-  loadingSpinner( spinnerSideBar, sideBarElement );
-
-  const promiseUsers = fetch( `${ JPH_URL.base }${ JPH_URL.users }/${userId}`);
-  const promiseComments = fetch( `${ JPH_URL.base }${ JPH_URL.comments }?postId=${postId}`);
-  
-  Promise.all([ promiseUsers, promiseComments ])
-
-         .then(responses => {
-
-          setTimeout(()=>{
-              loadingSpinner( spinnerSideBar, sideBarElement  );
-              responses.forEach( 
-              ( respAllData, index ) => {
-                  respAllData.json()
-                  .then( data => {
-                    if( index === 0 ){
-                      buildUserCard( data );
-                    } else {
-                      buildCommentCard( data );
-                    };
-                });
-             });
-          }, 2000)
-        });
+const loadUser = async (userId: string): Promise<IUser> => {
+  let response = {};
+  try {
+      const promiseUsers = await fetch( `${ JPH_URL.base }${ JPH_URL.users }/${ userId }`)
+      response = await promiseUsers.json();
+  } catch {
+    showError();
+  }
+  return response;
 };
+
+
+const loadComments = async ( postId: string): Promise<IComment[]>  => {
+  let response = [];
+  try {
+        const promiseComments = await fetch( `${ JPH_URL.base }${ JPH_URL.comments }?postId=${ postId }`)
+        response = await promiseComments.json() || [];
+  } catch {
+    showError();
+  }
+  return response
+}
+
+const loadMoreInfo = async ( userId: string, postId: string ) => {
+  
+  sideBarElement.innerHTML = '';
+  
+  loadingSpinner( spinnerSideBar, true, 'Cargando Usuario...');
+  const userData: IUser = await loadUser( userId );
+
+  loadingSpinner( spinnerSideBar, true, 'Cargando Comentarios...');
+  const commentsData: IComment[] = await loadComments( postId );
+
+  loadingSpinner( spinnerSideBar, false );
+  
+  if( userData.id && commentsData.length ){
+    buildUserCard( userData );
+    buildCommentCard( commentsData );
+  }else{
+    showError();
+  }
+  
+};
+
 
 const showError = () => {
   window.alert( 'Hubo un error! por Favor volvé a intentarlo.' );
